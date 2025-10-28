@@ -2,8 +2,9 @@ import pygame
 from random import randint, choice
 from params import *
 
-class Asteroid:
+class Asteroid(pygame.sprite.Sprite):
     def __init__(self, x,y,size=1):
+        pygame.sprite.Sprite.__init__(self)
         self.assets = [
             'assets/images/Meteors/meteorBrown_big1.png',
             'assets/images/Meteors/meteorBrown_big2.png',
@@ -17,8 +18,14 @@ class Asteroid:
         self.y = y
         self.size = size
         self.rect.center = (x,y)
+        self.vx = randint(-1000,1000)/1000
+        self.vy = randint(-1000,1000)/1000
     def draw(self,screen):
         screen.blit(self.image, self.rect)
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.rect.center = (self.x,self.y)
 
 
 

@@ -12,12 +12,17 @@ running = True
 background = make_background()
 
 ######moving pieces
-asteroid1 = Asteroid(randint(0,WIDTH), randint(0,HEIGHT))
+#asteroid group
+asteroid_group = pygame.sprite.Group()
+for a in range(8):
+    asteroid_group.add(Asteroid(randint(0,WIDTH), randint(0,HEIGHT)))
 player1 = Player(randint(0,WIDTH),randint(0,HEIGHT))
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
 hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
 
+
+##############
 
 while running:
     # poll for events
@@ -26,15 +31,18 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    asteroid_group.update()
+    #ERROR: the background doesn't fill the screen so when
+    #you update the asteroids the old one doesnt get covered up by the background
     screen.blit(background,(0,0))
     ######### RENDER YOUR GAME HERE ########################
-    asteroid1.draw(screen)
+    
+    asteroid_group.draw(screen)
     player1.draw(screen)
-    easy_enemy.draw(screen)
-    medium_enemy.draw(screen)
-    hard_enemy.draw(screen)
+
    
    
+
     # flip() the display to put your work on screen
     pygame.display.flip()
 
