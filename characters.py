@@ -18,14 +18,22 @@ class Asteroid(pygame.sprite.Sprite):
         self.y = y
         self.size = size
         self.rect.center = (x,y)
-        self.vx = randint(-1000,1000)/1000
-        self.vy = randint(-1000,1000)/1000
+        self.vx = randint(-1000,1000)/750
+        self.vy = randint(-1000,1000)/750
     def draw(self,screen):
         screen.blit(self.image, self.rect)
     def update(self):
         self.x += self.vx
         self.y += self.vy
         self.rect.center = (self.x,self.y)
+
+        #if the asteroid moves off the screen 
+        if self.rect.left < -200 or self.rect.right > WIDTH+200 or self.rect.top < -200 or self.rect.bottom >HEIGHT+200:
+            print('off screen')
+            self.x = choice([randint(-100,0),randint(WIDTH,WIDTH+100)])
+            self.y = choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)])
+            self.vx = randint(-1000,1000)/750
+            self.vy = randint(-1000,1000)/750
 
 
 
