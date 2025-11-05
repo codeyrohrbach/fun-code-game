@@ -4,6 +4,7 @@ from params import *
 from background import make_background
 from characters import *
 from random import randint, choice
+from text import *
 # pygame setup
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -26,35 +27,33 @@ easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
 hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
 ##############
-
-
-###########################################TESTING
+#init the joystick stuff
 pygame.joystick.init()
 
-
-#################################################
+text = Text()
 
 while running:
+    score = pygame.time.get_ticks()//100
     # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        player1.check_event(event)
     #controller
         if event.type == pygame.JOYDEVICEADDED:
             controller = pygame.joystick.Joystick(event.device_index)    
         #getting the value of how far the joystick is pushed up, down ,left, right
     left_right = controller.get_axis(0)
     up_down = -controller.get_axis(1) #negative so that moving joystick up is val of positive 1
-
+    right_trigger = controller.get_axis(5)
     #updates, blitting
     asteroid_group.update()
-    player1.update(left_right,up_down)
+    player1.update(left_right,up_down,right_trigger)
+    text.update_score(score)
     screen.blit(background,(0,0))
     screen.blit(background,(1111,0))
     
     #drawing the groups and player
+    text.draw(screen)
     asteroid_group.draw(screen)
     player1.draw(screen)
 

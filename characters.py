@@ -64,8 +64,12 @@ class Player:
         self.theta = math.atan2(self.vy,-self.vx)     
         
         #updating
-    def update(self, left_right, up_down, speed=3):
-        #takes the values of controller and sets vx and vy equal to it
+    def update(self, left_right, up_down, right_trigger):
+        speed = 3
+        #boost button, if right trigger pushed down then increase speed
+        if right_trigger > 0.5:
+            speed = 5
+        #takes the values of joysticks and sets vx and vy equal to it
         self.vx = left_right *speed
         self.get_theta()
         self.vy = -up_down *speed
@@ -74,17 +78,6 @@ class Player:
         self.y += self.vy
         #update the rect
         self.rect.center = (self.x,self.y)
-
-    def check_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                self.image = pygame.transform.rotozoom(self.image,10,1)
-            if event.key == pygame.K_d:
-                self.image = pygame.transform.rotozoom(self.image,-10,1)
-
-        
-    
-    
 
 
 
