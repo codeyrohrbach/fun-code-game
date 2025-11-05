@@ -25,9 +25,14 @@ player1 = Player(randint(0,WIDTH),randint(0,HEIGHT))
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
 hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
-
-
 ##############
+
+
+###########################################TESTING
+pygame.joystick.init()
+
+
+#################################################
 
 while running:
     # poll for events
@@ -35,8 +40,23 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        player1.check_event(event)
+        if event.type == pygame.JOYDEVICEADDED:
+            print(event)
+            controller = pygame.joystick.Joystick(event.device_index)
+
+            
+    ###################TEST CONTROLLER
+    #getting the value of how far the joystick is pushed up, down ,left, right
+    left_right = controller.get_axis(0)
+    up_down = -controller.get_axis(1) #negative so that moving joystick up is val of positive 1
+
+    player1.vx = left_right *3
+    player1.vy = -up_down *3 #negative again cause going down is positive (counterintuitive but this way it makes sense)
+    ##################################
 
     asteroid_group.update()
+    player1.update()
     #ERROR: the background doesn't fill the screen so when
     #you update the asteroids the old one doesnt get covered up by the background
     screen.blit(background,(0,0))

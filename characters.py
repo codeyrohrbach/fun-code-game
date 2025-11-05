@@ -29,7 +29,6 @@ class Asteroid(pygame.sprite.Sprite):
 
         #if the asteroid moves off the screen 
         if self.rect.left < -200 or self.rect.right > WIDTH+200 or self.rect.top < -200 or self.rect.bottom >HEIGHT+200:
-            print('off screen')
             self.x = choice([randint(-100,0),randint(WIDTH,WIDTH+100)])
             self.y = choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)])
             self.vx = randint(-1000,1000)/750
@@ -44,9 +43,24 @@ class Player:
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
+        self.vx = 0
+        self.vy = 0
         self.rect.center = (x,y)
     def draw(self,screen):
-        screen.blit(self.image, self.rect)
+        screen.blit(self.image, self.rect.center)
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.rect.center = (self.x,self.y)
+    def check_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a:
+                self.image = pygame.transform.rotozoom(self.image,10,1)
+            if event.key == pygame.K_d:
+                self.image = pygame.transform.rotozoom(self.image,-10,1)
+
+        
+    
     
 
 
