@@ -15,7 +15,7 @@ background = make_background()
 #asteroid group
 asteroid_group = pygame.sprite.Group()
 #randomise the position of the asteroid so it goes off the screen using a random choice of random range
-for a in range(8):
+for a in range(14):
     asteroid_group.add(Asteroid(choice([randint(-100,0),randint(WIDTH,WIDTH+100)]), choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)])))
 
 #player
@@ -41,37 +41,26 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         player1.check_event(event)
+    #controller
         if event.type == pygame.JOYDEVICEADDED:
-            print(event)
-            controller = pygame.joystick.Joystick(event.device_index)
-
-            
-    ###################TEST CONTROLLER
-    #getting the value of how far the joystick is pushed up, down ,left, right
+            controller = pygame.joystick.Joystick(event.device_index)    
+        #getting the value of how far the joystick is pushed up, down ,left, right
     left_right = controller.get_axis(0)
     up_down = -controller.get_axis(1) #negative so that moving joystick up is val of positive 1
 
-    player1.vx = left_right *3
-    player1.vy = -up_down *3 #negative again cause going down is positive (counterintuitive but this way it makes sense)
-    ##################################
-
+    #updates, blitting
     asteroid_group.update()
-    player1.update()
-    #ERROR: the background doesn't fill the screen so when
-    #you update the asteroids the old one doesnt get covered up by the background
+    player1.update(left_right,up_down)
     screen.blit(background,(0,0))
     screen.blit(background,(1111,0))
-    ######### RENDER YOUR GAME HERE ########################
     
+    #drawing the groups and player
     asteroid_group.draw(screen)
     player1.draw(screen)
 
    
    
-
-    # flip() the display to put your work on screen
+    #dont touch
     pygame.display.flip()
-
     clock.tick(60)  # limits FPS to 60
-
 pygame.quit()
