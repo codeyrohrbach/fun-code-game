@@ -33,7 +33,7 @@ pygame.joystick.init()
 text = Text()
 
 while running:
-    score = pygame.time.get_ticks()//100
+    score = pygame.time.get_ticks()//200
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -49,8 +49,7 @@ while running:
     asteroid_group.update()
     player1.update(left_right,up_down,right_trigger)
     text.update_score(score)
-    screen.blit(background,(0,0))
-    screen.blit(background,(1111,0))
+    screen.blit(background,(-10,0))
     
     #drawing the groups and player
     text.draw(screen)
