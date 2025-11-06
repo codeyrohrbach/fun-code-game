@@ -23,8 +23,15 @@ class Asteroid(pygame.sprite.Sprite):
         self.rect.center = (x,y)
         self.vx = randint(-1000,1000)/750
         self.vy = randint(-1000,1000)/750
+
+        #asteroid mask
+        self.mask = pygame.mask.from_surface(self.image)
+        #so i can see the mask
+        self.mask_image = self.mask.to_surface()
     def draw(self,screen):
         screen.blit(self.image, self.rect)
+        #mask
+        screen.blit(self.mask_image,self.rect)
     def update(self):
         self.x += self.vx
         self.y += self.vy
@@ -33,31 +40,43 @@ class Asteroid(pygame.sprite.Sprite):
         #if the asteroid moves off the screen 
         if self.rect.left < -200 or self.rect.right > WIDTH+200 or self.rect.top < -200 or self.rect.bottom >HEIGHT+200:
             #randomise where it gets moved to
-            self.x = choice([randint(-100,0),randint(WIDTH,WIDTH+100)])
-            self.y = choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)])
+            self.x = reset_asteroid()[0]
+            self.y = reset_asteroid()[1]
             #randomise the direction of asteroid (makes it seem like a new asteroid)
             self.vx = randint(-1000,1000)/750
             self.vy = randint(-1000,1000)/750
 
-
+def reset_asteroid():
+    return (choice([randint(-100,0),randint(WIDTH,WIDTH+100)]), choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)]))
 
 class Player:
-    def __init__(self,x,y):
+    def __init__(self,x,y,asteroid_group):
         self.file_path = 'assets/images/playerShip1_blue.png'
         self.og_image = pygame.image.load(self.file_path)
         self.rect = self.og_image.get_rect()
+        self.asteroid_group = asteroid_group
         self.x = x
         self.y = y
         self.vx = 0
         self.vy = 0
+        self.lives = 3
         self.rect.center = (x,y)
+        
+        #making a mask from the ship
+        self.og_mask = pygame.mask.from_surface(self.og_image)
+        #so i can see the mask
+        self.og_mask_image = self.og_mask.to_surface()
+        
         #putting it on the screen
     def draw(self,screen):
-        #screen.blit(self.image, self.rect.center)
-
         self.image = pygame.transform.rotozoom(self.og_image, math.degrees(self.theta)+90,0.6)
         self.rect = self.image.get_rect(center=self.rect.center)
         screen.blit(self.image, self.rect)
+
+        #rotates the mask with the ship
+        self.mask_image = pygame.transform.rotozoom(self.og_mask_image, math.degrees(self.theta)+90,0.6)
+        #for testing, draws the mask
+        #screen.blit(self.mask_image,self.rect)
         
     def get_theta(self):
         # get our theta based on our vx and vy
@@ -78,6 +97,17 @@ class Player:
         self.y += self.vy
         #update the rect
         self.rect.center = (self.x,self.y)
+
+
+        #collision with asteroid
+        if pygame.sprite.spritecollide(self,self.asteroid_group,0):
+            asteroid_collision = pygame.sprite.spritecollide(self,self.asteroid_group,0,pygame.sprite.collide_mask)
+            if asteroid_collision:
+                self.lives -=1
+            # reset asteroid
+                for f in asteroid_collision:
+                    f.x = reset_asteroid()[0]
+                    f.y = reset_asteroid()[1]
 
 
 
@@ -120,3 +150,4 @@ class Enemy_Hard:
         self.speed = 3
     def draw(self,screen):
         screen.blit(self.image, self.rect)
+

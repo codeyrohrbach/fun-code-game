@@ -17,10 +17,10 @@ background = make_background()
 asteroid_group = pygame.sprite.Group()
 #randomise the position of the asteroid so it goes off the screen using a random choice of random range
 for a in range(14):
-    asteroid_group.add(Asteroid(choice([randint(-100,0),randint(WIDTH,WIDTH+100)]), choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)])))
+    asteroid_group.add(Asteroid(reset_asteroid()[0],reset_asteroid()[1]))
 
 #player
-player1 = Player(randint(0,WIDTH),randint(0,HEIGHT))
+player1 = Player(randint(0,WIDTH),randint(0,HEIGHT),asteroid_group)
 
 #enemies
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
@@ -49,14 +49,24 @@ while running:
     asteroid_group.update()
     player1.update(left_right,up_down,right_trigger)
     text.update_score(score)
+    text.update_lives(player1.lives)
     screen.blit(background,(-10,0))
     
     #drawing the groups and player
-    text.draw(screen)
     asteroid_group.draw(screen)
-    player1.draw(screen)
+    text.draw(screen)
 
-   
+    player1.draw(screen)
+    
+    #to see asteroid mask
+    for a in asteroid_group:
+        a.draw(screen)
+    
+    #draw the rects
+    pygame.draw.rect(screen,(255,255,255),player1.rect,1)
+    for a in asteroid_group:
+        pygame.draw.rect(screen,(255,255,255),a.rect,1)
+
    
     #dont touch
     pygame.display.flip()
