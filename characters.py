@@ -83,7 +83,8 @@ class Player:
         self.theta = math.atan2(self.vy,-self.vx)     
         
         #updating
-    def update(self, left_right, up_down, right_trigger):
+    def update(self, left_right, up_down, right_trigger,screen=None):
+        self.explode = False
         speed = 3
         #boost button, if right trigger pushed down then increase speed
         if right_trigger > 0.5:
@@ -101,15 +102,50 @@ class Player:
 
         #collision with asteroid
         if pygame.sprite.spritecollide(self,self.asteroid_group,0):
-            asteroid_collision = pygame.sprite.spritecollide(self,self.asteroid_group,0,pygame.sprite.collide_mask)
-            if asteroid_collision:
+            self.asteroid_collision = pygame.sprite.spritecollide(self,self.asteroid_group,0,pygame.sprite.collide_mask)
+            if self.asteroid_collision:
                 self.lives -=1
+                self.explode = True
             # reset asteroid
-                for f in asteroid_collision:
+                for f in self.asteroid_collision:
                     f.x = reset_asteroid()[0]
                     f.y = reset_asteroid()[1]
+                
+class Laser():
+    def __init__(self):
+        self.file_path = 'assets/images/Lasers/laserBlue01.png'
+        self.image = pygame.image.load(self.file_path)
+        self.vx = 0
+        self.vy = 0
+        self.rect = self.image.get_rect()
+    def draw(self,screen,coordinate,theta):
+        self.rect.center = coordinate
+        self.new_image = pygame.transform.rotozoom(self.image,math.degrees(theta)+90,0.8)
+        screen.blit(self.new_image,coordinate)
 
 
+class Explosion:
+    def __init__(self):
+        self.explosion_types = []
+        self.assets = [
+            'assets/PNG/Explosion/explosion00.png',
+            'assets/PNG/Explosion/explosion01.png',
+            'assets/PNG/Explosion/explosion02.png',
+            'assets/PNG/Explosion/explosion03.png',
+            'assets/PNG/Explosion/explosion04.png',
+            'assets/PNG/Explosion/explosion05.png',
+            'assets/PNG/Explosion/explosion06.png',
+            'assets/PNG/Explosion/explosion07.png',
+            'assets/PNG/Explosion/explosion08.png',
+        ]
+        for a in self.assets:
+            self.file_path = choice(self.assets)
+            self.image = pygame.image.load(self.file_path)
+            self.image = pygame.transform.rotozoom(self.image,0,0.2)
+            self.explosion_types.append(self.image)
+    def draw(self, screen, x,y):
+        self.new_image = choice(self.explosion_types)
+        screen.blit(self.new_image, (x,y))
 
 class Enemy_Easy:
     def __init__(self, x, y):

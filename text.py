@@ -7,7 +7,7 @@ class Text:
         self.lives_surface = self.lives_font.render('Lives: 3',1,(255,0,0))
     def draw(self, screen):
         screen.blit(self.score_surface, (20,20))
-        screen.blit(self.lives_surface, (1085,20))
+        screen.blit(self.lives_surface, (1075,20))
     def update_score(self, score):
         #make it only render the score every 10 points (every point was distracting)
         if score %10 == 0:

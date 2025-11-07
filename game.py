@@ -16,12 +16,13 @@ background = make_background()
 #asteroid group
 asteroid_group = pygame.sprite.Group()
 #randomise the position of the asteroid so it goes off the screen using a random choice of random range
-for a in range(14):
+for a in range(30):
     asteroid_group.add(Asteroid(reset_asteroid()[0],reset_asteroid()[1]))
 
 #player
 player1 = Player(randint(0,WIDTH),randint(0,HEIGHT),asteroid_group)
-
+explosion = Explosion()
+laser = Laser()
 #enemies
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
@@ -42,9 +43,11 @@ while running:
         if event.type == pygame.JOYDEVICEADDED:
             controller = pygame.joystick.Joystick(event.device_index)    
         #getting the value of how far the joystick is pushed up, down ,left, right
-    left_right = controller.get_axis(0)
-    up_down = -controller.get_axis(1) #negative so that moving joystick up is val of positive 1
-    right_trigger = controller.get_axis(5)
+        left_right = controller.get_axis(0)
+        up_down = -controller.get_axis(1) #negative so that moving joystick up is val of positive 1
+        right_trigger = controller.get_axis(5)
+        controller_connected = True
+    
     #updates, blitting
     asteroid_group.update()
     player1.update(left_right,up_down,right_trigger)
@@ -55,19 +58,25 @@ while running:
     #drawing the groups and player
     asteroid_group.draw(screen)
     text.draw(screen)
-
+    if controller.get_button(0) == 1:
+        laser.draw(screen,player1.rect.center,player1.theta)
+    if player1.explode == 1:
+        explosion.draw(screen,player1.asteroid_collision[0].rect.left -25,player1.asteroid_collision[0].rect.top -25)
+        controller.rumble(0.5,0.5,250)
     player1.draw(screen)
-    
-    #to see asteroid mask
+
+    '''#to see asteroid mask
     for a in asteroid_group:
-        a.draw(screen)
+        a.draw(screen)'''
     
     #draw the rects
+    pygame.draw.rect(screen,(255,255,255),laser.rect,1)
     pygame.draw.rect(screen,(255,255,255),player1.rect,1)
     for a in asteroid_group:
         pygame.draw.rect(screen,(255,255,255),a.rect,1)
 
-   
+    '''if player1.lives == 0:
+        pygame.quit()'''
     #dont touch
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
