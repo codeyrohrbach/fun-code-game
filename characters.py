@@ -2,6 +2,7 @@ import pygame
 from random import randint, choice
 from params import *
 import math
+from math import radians, cos, sin
 
 class Asteroid(pygame.sprite.Sprite):
     def __init__(self, x,y,size=1):
@@ -61,6 +62,8 @@ class Player:
         self.vy = 0
         self.lives = 3
         self.rect.center = (x,y)
+        #laser code
+        self.lasers = pygame.sprite.Group()
         
         #making a mask from the ship
         self.og_mask = pygame.mask.from_surface(self.og_image)
@@ -78,6 +81,8 @@ class Player:
         #for testing, draws the mask
         #screen.blit(self.mask_image,self.rect)
         
+        for s in self.lasers:
+            s.draw(screen)
     def get_theta(self):
         # get our theta based on our vx and vy
         self.theta = math.atan2(self.vy,-self.vx)     
@@ -110,18 +115,41 @@ class Player:
                 for f in self.asteroid_collision:
                     f.x = reset_asteroid()[0]
                     f.y = reset_asteroid()[1]
+        self.lasers.update()
+    def shoot(self):
+        new_laser = Laser(self.rect.center,self.theta)
+        self.lasers.add(new_laser)
                 
-class Laser():
-    def __init__(self):
+class Laser(pygame.sprite.Sprite):
+    def __init__(self,coordinates,theta):
+        super().__init__()
         self.file_path = 'assets/images/Lasers/laserBlue01.png'
         self.image = pygame.image.load(self.file_path)
-        self.vx = 0
-        self.vy = 0
+        self.theta = theta
+        self.speed = 20
+        self.vx = -self.speed* cos(self.theta)
+        self.vy = self.speed* sin(self.theta)
         self.rect = self.image.get_rect()
-    def draw(self,screen,coordinate,theta):
-        self.rect.center = coordinate
-        self.new_image = pygame.transform.rotozoom(self.image,math.degrees(theta)+90,0.8)
-        screen.blit(self.new_image,coordinate)
+        self.x = coordinates[0]
+        self.y = coordinates[1]
+        self.rect.center = (coordinates)
+        self.og_mask = pygame.mask.from_surface(self.image)
+        self.mask_image = self.og_mask.to_surface()
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        if self.x>WIDTH+100 or self.x<-100 or self.y>HEIGHT+100 or self.y<-100:
+            self.kill()
+        self.rect.center = (self.x,self.y)
+    def draw(self,screen):
+        self.new_image = pygame.transform.rotozoom(self.image,math.degrees(self.theta)+90,0.8)
+        self.rect = self.new_image.get_rect(center=self.rect.center)
+        screen.blit(self.new_image,self.rect)
+
+
+        #mask stuff
+        #self.new_mask_image = pygame.transform.rotozoom(self.mask_image,math.degrees(self.theta)+90,0.8)
+        #screen.blit(self.new_mask_image,self.rect)
 
 
 class Explosion:

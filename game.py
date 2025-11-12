@@ -22,7 +22,6 @@ for a in range(30):
 #player
 player1 = Player(randint(0,WIDTH),randint(0,HEIGHT),asteroid_group)
 explosion = Explosion()
-laser = Laser()
 #enemies
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT))
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
@@ -32,9 +31,14 @@ hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
 pygame.joystick.init()
 
 text = Text()
+score = 0
+time_since_shot = 0
 
 while running:
-    score = pygame.time.get_ticks()//200
+    #time stuff
+    runtime = pygame.time.get_ticks()
+    laser_cooldown_time = 1000
+    score = runtime//200
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -58,23 +62,28 @@ while running:
     #drawing the groups and player
     asteroid_group.draw(screen)
     text.draw(screen)
+    player1.draw(screen)
     if controller.get_button(0) == 1:
-        laser.draw(screen,player1.rect.center,player1.theta)
+        if runtime - time_since_shot >= laser_cooldown_time:
+            player1.shoot()
+            time_since_shot = runtime
+        else:
+            pass
     if player1.explode == 1:
         explosion.draw(screen,player1.asteroid_collision[0].rect.left -25,player1.asteroid_collision[0].rect.top -25)
         controller.rumble(0.5,0.5,250)
-    player1.draw(screen)
 
     '''#to see asteroid mask
     for a in asteroid_group:
         a.draw(screen)'''
-    
+    '''
     #draw the rects
-    pygame.draw.rect(screen,(255,255,255),laser.rect,1)
+    for l in player1.lasers:
+        pygame.draw.rect(screen,(255,255,255),l.rect,1)
     pygame.draw.rect(screen,(255,255,255),player1.rect,1)
     for a in asteroid_group:
         pygame.draw.rect(screen,(255,255,255),a.rect,1)
-
+'''
     '''if player1.lives == 0:
         pygame.quit()'''
     #dont touch
