@@ -19,7 +19,7 @@ class Title:
     def __init__(self):
         self.title_font = pygame.font.Font('assets/Xirod.otf',60)
         self.subtitle_font = pygame.font.Font('assets/Xirod.otf',20)
-        self.title_surface = self.title_font.render('Meteor Madness',1,(255,0,0))
+        self.title_surface = self.title_font.render('Asteroid Avoidance',1,(255,0,0))
         self.subtitle_surface = self.subtitle_font.render('Press Circle (O) to start',1,(255,0,0))
         self.rect = self.title_surface.get_rect()
         self.subrect = self.subtitle_surface.get_rect()

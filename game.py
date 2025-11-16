@@ -68,8 +68,7 @@ while running:
         asteroid_group.update()
         try:
             player1.update(left_right,up_down,right_trigger)
-        except:
-            pass
+        except: pass
         text.update_score(score)
         text.update_lives(player1.lives)
         screen.blit(background,(-10,0))
@@ -82,26 +81,21 @@ while running:
                 if runtime - time_since_shot >= laser_cooldown_time:
                     player1.shoot()
                     time_since_shot = runtime
-                else:
-                    pass
-        except:
-            pass
+        except: pass
         player1.draw(screen)
         if player1.explode == 1:
             explosion.draw(background,player1.asteroid_collision[0].rect.left -25,player1.asteroid_collision[0].rect.top -25)
             explosion_time = runtime
             try:
                 controller.rumble(0.1,1,500)
-            except:
-                pass
+            except: pass
         for l in player1.lasers:
             if l.explode == 1:
                 explosion.draw(background,l.asteroid_collision[0].rect.left -25,l.asteroid_collision[0].rect.top -25)
                 explosion_time = runtime
                 try:
                     controller.rumble(0.5,0.5,150)
-                except:
-                    pass
+                except: pass
         #get rid of the explosions
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
@@ -123,8 +117,10 @@ while running:
     #player dies, game over screen, allows to go to main menu by pressing triangle
     elif started == 3:
         gameover.draw(screen)
-        if controller.get_button(3) ==1:
-            started = 0
+        try:
+            if controller.get_button(3) ==1:
+                started = 0
+        except: pass
     #controls screen
     elif started == 4:
         background = make_background()
@@ -132,10 +128,12 @@ while running:
         controls.draw(screen)
         circle.draw(screen,200)
         triangle.draw(screen,250)
-        if controller.get_button(1) == 1:
-            started = 1
-        elif controller.get_button(3) ==1:
-            started = 0
+        try:
+            if controller.get_button(1) == 1:
+                started = 1
+            elif controller.get_button(3) ==1:
+                started = 0
+        except: pass
     #game hasn't started / just reset
     else:
         background = make_background()
@@ -150,10 +148,12 @@ while running:
         score = 0
         player1.x = WIDTH//2
         player1.y = HEIGHT//2
-        if controller.get_button(1) == 1:
-            started = 1
-        if controller.get_button(2) == 1:
-            started = 4
+        try:
+            if controller.get_button(1) == 1:
+                started = 1
+            if controller.get_button(2) == 1:
+                started = 4
+        except: pass
     #dont touch
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
