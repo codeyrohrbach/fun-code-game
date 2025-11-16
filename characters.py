@@ -22,8 +22,8 @@ class Asteroid(pygame.sprite.Sprite):
         self.y = y
         self.size = size
         self.rect.center = (x,y)
-        self.vx = randint(-1000,1000)/750
-        self.vy = randint(-1000,1000)/750
+        self.vx = randint(-2000,2000)/750
+        self.vy = randint(-2000,2000)/750
 
         #asteroid mask
         self.mask = pygame.mask.from_surface(self.image)
@@ -72,12 +72,18 @@ class Player:
         
         #putting it on the screen
     def draw(self,screen):
-        self.image = pygame.transform.rotozoom(self.og_image, math.degrees(self.theta)+90,0.6)
+        try:
+            self.image = pygame.transform.rotozoom(self.og_image, math.degrees(self.theta)+90,0.6)
+        except:
+            self.image = self.og_image
         self.rect = self.image.get_rect(center=self.rect.center)
         screen.blit(self.image, self.rect)
 
         #rotates the mask with the ship
-        self.mask_image = pygame.transform.rotozoom(self.og_mask_image, math.degrees(self.theta)+90,0.6)
+        try:
+            self.mask_image = pygame.transform.rotozoom(self.og_mask_image, math.degrees(self.theta)+90,0.6)
+        except:
+            self.mas_image = self.og_mask_image
         #for testing, draws the mask
         #screen.blit(self.mask_image,self.rect)
         
@@ -116,12 +122,13 @@ class Player:
                     f.x = reset_asteroid()[0]
                     f.y = reset_asteroid()[1]
         self.lasers.update()
+    
     def shoot(self):
-        new_laser = Laser(self.rect.center,self.theta)
+        new_laser = Laser(self.rect.center,self.theta,self.asteroid_group)
         self.lasers.add(new_laser)
                 
 class Laser(pygame.sprite.Sprite):
-    def __init__(self,coordinates,theta):
+    def __init__(self,coordinates,theta,asteroid_group):
         super().__init__()
         self.file_path = 'assets/images/Lasers/laserBlue01.png'
         self.image = pygame.image.load(self.file_path)
@@ -135,11 +142,22 @@ class Laser(pygame.sprite.Sprite):
         self.rect.center = (coordinates)
         self.og_mask = pygame.mask.from_surface(self.image)
         self.mask_image = self.og_mask.to_surface()
+        self.asteroid_group = asteroid_group
+        self.explode = False
     def update(self):
         self.x += self.vx
         self.y += self.vy
         if self.x>WIDTH+100 or self.x<-100 or self.y>HEIGHT+100 or self.y<-100:
             self.kill()
+
+        if pygame.sprite.spritecollide(self,self.asteroid_group,0):
+            self.asteroid_collision = pygame.sprite.spritecollide(self,self.asteroid_group,0,pygame.sprite.collide_mask)
+            if self.asteroid_collision:
+                self.explode = True
+                self.x = WIDTH +150
+                for f in self.asteroid_collision:
+                        f.x = reset_asteroid()[0]
+                        f.y = reset_asteroid()[1]
         self.rect.center = (self.x,self.y)
     def draw(self,screen):
         self.new_image = pygame.transform.rotozoom(self.image,math.degrees(self.theta)+90,0.8)
@@ -152,8 +170,9 @@ class Laser(pygame.sprite.Sprite):
         #screen.blit(self.new_mask_image,self.rect)
 
 
-class Explosion:
+class Explosion(pygame.sprite.Sprite):
     def __init__(self):
+        super().__init__()
         self.explosion_types = []
         self.assets = [
             'assets/PNG/Explosion/explosion00.png',
