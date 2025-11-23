@@ -150,15 +150,16 @@ class Player:
     #player shooting
     def shoot(self):
         #create a new laser at the players point with players theta, add it to spritegroup
-        new_laser = Laser(self.rect.center,self.theta,self.asteroid_group)
+        new_laser = Laser(self.rect.center,self.theta,self.asteroid_group,'assets/images/Lasers/laserBlue01.png')
         self.lasers.add(new_laser)
 
 #laser code, sprite
 class Laser(pygame.sprite.Sprite):
-    def __init__(self,coordinates,theta,asteroid_group):
+    def __init__(self,coordinates,theta,asteroid_group,fp):
         super().__init__()
         #init stuff
-        self.file_path = 'assets/images/Lasers/laserBlue01.png'
+        self.file_path = fp
+        #'assets/images/Lasers/laserBlue01.png'
         self.image = pygame.image.load(self.file_path)
         self.theta = theta
         self.speed = 20
@@ -176,8 +177,8 @@ class Laser(pygame.sprite.Sprite):
         self.explode = False
     #updating lasers
     def update(self):
-        self.x += self.vx
-        self.y += self.vy
+        self.x += -self.speed* cos(self.theta)
+        self.y += self.speed* sin(self.theta)
         #if the laser goes off the screen, kill it
         if self.x>WIDTH+100 or self.x<-100 or self.y>HEIGHT+100 or self.y<-100:
             self.kill()
@@ -237,8 +238,9 @@ class Explosion(pygame.sprite.Sprite):
         self.new_image = choice(self.explosion_types)
         screen.blit(self.new_image, (x,y))
 
-class Enemy_Easy:
+class Enemy_Easy(pygame.sprite.Sprite):
     def __init__(self, x, y, player):
+        super().__init__()
         self.file_path = 'assets/images/Enemies/enemyBlack1.png'
         self.ogimage = pygame.image.load(self.file_path)
         self.ogimage = pygame.transform.rotozoom(self.ogimage, 0, 0.7)
@@ -249,8 +251,13 @@ class Enemy_Easy:
         self.rect.center = (x,y)
         self.player = player
         self.bad_lasers = pygame.sprite.Group()
+        self.time_since_tracked = 0
+        self.tracking = 0
+        self.time_since_shot = 0
+        self.laser_cooldown_time = 1000
     def draw(self,screen):
         self.image = pygame.transform.rotozoom(self.ogimage, math.degrees(self.theta)-90, 0.75)
+        self.rect = self.image.get_rect(center=self.rect.center)
         screen.blit(self.image, self.rect)
         for s in self.bad_lasers:
             s.file_path = 'assets/images/Lasers/laserRed01.png'
@@ -264,10 +271,11 @@ class Enemy_Easy:
         self.theta = math.atan2(delta_y, -delta_x)
     def shoot(self):
         #create a new laser at the players point with players theta, add it to spritegroup
-        new_laser = Laser(self.rect.center,self.theta,self.player.asteroid_group)
+        new_laser = Laser(self.rect.center,self.theta,self.player.asteroid_group,'assets/images/Lasers/laserRed01.png')
+        new_laser.speed = 10
         self.bad_lasers.add(new_laser)
    
-    def update(self):
+    def track(self):
         self.get_theta()
         self.vx = -(self.speed*cos(self.theta))
         self.vy = self.speed*sin(self.theta)
@@ -275,6 +283,14 @@ class Enemy_Easy:
         self.y += self.vy
         self.rect.center = (self.x,self.y)
         self.bad_lasers.update()
+    def go_straight(self):
+        self.vx = -(self.speed*cos(self.theta))
+        self.vy = self.speed*sin(self.theta)
+        self.x += self.vx
+        self.y += self.vy
+        self.rect.center = (self.x,self.y)
+        self.bad_lasers.update()
+
 
 
 

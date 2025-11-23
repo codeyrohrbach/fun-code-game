@@ -27,6 +27,10 @@ explosion = Explosion()
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1)
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
 hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
+#enemy group
+enemy_group = pygame.sprite.Group()
+for e in range (5):
+    enemy_group.add(Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1))
 
 #init the joystick
 pygame.joystick.init()
@@ -49,6 +53,9 @@ explosion_screentime = 1000
 start_time = 0
 previous_time_score = 0
 time_score = 0
+time_since_tracked = 0
+laser_cooldown_time = 1000
+tracking = 0
 #starting state
 state = 'level2'
 
@@ -56,7 +63,6 @@ state = 'level2'
 while running:
     #time stuff that changes
     runtime = pygame.time.get_ticks()
-    laser_cooldown_time = 1000
     
     # poll for events
     for event in pygame.event.get():
@@ -214,16 +220,30 @@ while running:
         #update the score in code and on screen
         score += time_score - previous_time_score
         text.update_score(score)
-        easy_enemy.update()
-        easy_enemy.draw(screen)
-        if runtime - enemy_time_since_shot >= laser_cooldown_time:  
-            easy_enemy.shoot()
-            enemy_time_since_shot = runtime
+        for e in enemy_group:
+            if e.time_since_tracked == 0:
+                e.theta = randint(0,360)
+            if runtime - e.time_since_tracked >= 3000:
+                print('randomising')
+                e.tracking = randint(0,1)
+                e.time_since_tracked = runtime
+            if e.tracking == 1:
+                print('tracking')
+                e.track()
+                if runtime - e.time_since_shot >= e.laser_cooldown_time:  
+                    e.shoot()
+                    e.time_since_shot = runtime
+                    e.laser_cooldown_time = randint(1000,5000)
+            else:
+                print('straight')
+                e.go_straight()
+            e.draw(screen)
         
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
                 background = make_background()
         
+
         #if player dies set the state to dead
         if player1.lives <= 0:
             state = 'dead'
