@@ -60,6 +60,17 @@ class Asteroid(pygame.sprite.Sprite):
 def reset_asteroid():
     return (choice([randint(-100,0),randint(WIDTH,WIDTH+100)]), choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)]))
 
+def reset_game(asteroid_group, enemy_group):
+    for a in asteroid_group:
+        a.kill()
+    for a in range(100):
+        asteroid_group.add(Asteroid(reset_asteroid()[0],reset_asteroid()[1]))
+    for e in enemy_group:
+        e.kill()
+    for e in range (5):
+        enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
+
+
 #player class
 class Player:
     def __init__(self,x,y,asteroid_group):
@@ -72,6 +83,7 @@ class Player:
         self.y = y
         self.vx = 0
         self.vy = 0
+        self.enemy_group = 0
         #change to change base lives
         self.lives = 3
         self.rect.center = (x,y)
@@ -117,10 +129,10 @@ class Player:
     def update(self, left_right, up_down, right_trigger,screen=None):
         #variable explode to change if player hits asteroid
         self.explode = False
-        speed = 3
+        speed = 5
         #boost button, if right trigger pushed down then increase speed
         if right_trigger > 0.5:
-            speed = 5
+            speed = 8
         #takes the values of joysticks and sets vx and vy equal to it
         self.vx = left_right *speed
         self.get_theta()
@@ -145,6 +157,21 @@ class Player:
                 for f in self.asteroid_collision:
                     f.x = reset_asteroid()[0]
                     f.y = reset_asteroid()[1]
+        #collision with enemy
+        #checking for rect collision
+        if pygame.sprite.spritecollide(self,self.enemy_group,0):
+            #checking for mask collision
+            self.enemy_collision = pygame.sprite.spritecollide(self,self.enemy_group,0,pygame.sprite.collide_mask)
+            if self.enemy_collision:
+                #take a life away
+                self.lives -=1
+                #set explode = true so can check for it in game file
+                self.explode = True
+            # reset asteroid using the function I created earlier
+                for e in self.enemy_collision:
+                    e.kill()
+                    #e.x = reset_asteroid()[0]
+                    #e.y = reset_asteroid()[1]
         #update the lasers
         self.lasers.update()
     #player shooting
@@ -253,8 +280,15 @@ class Enemy_Easy(pygame.sprite.Sprite):
         self.bad_lasers = pygame.sprite.Group()
         self.time_since_tracked = 0
         self.tracking = 0
-        self.time_since_shot = 0
+        self.time_since_shot = pygame.time.get_ticks()
         self.laser_cooldown_time = 1000
+        self.trackingtime = 3000
+        
+        #making a mask from the ship
+        self.og_mask = pygame.mask.from_surface(self.ogimage)
+        #give the mask a surface so i can see the mask
+        self.og_mask_image = self.og_mask.to_surface()
+
     def draw(self,screen):
         self.image = pygame.transform.rotozoom(self.ogimage, math.degrees(self.theta)-90, 0.75)
         self.rect = self.image.get_rect(center=self.rect.center)
@@ -262,6 +296,15 @@ class Enemy_Easy(pygame.sprite.Sprite):
         for s in self.bad_lasers:
             s.file_path = 'assets/images/Lasers/laserRed01.png'
             s.draw(screen)
+        
+        #rotates the mask with the ship
+        try:
+            self.mask_image = pygame.transform.rotozoom(self.og_mask_image, math.degrees(self.theta)-90,0.75)
+        except:
+            self.mask_image = self.og_mask_image
+        
+        #for testing, draws the mask, uncomment to see mask
+        #screen.blit(self.mask_image,self.rect)
 
     def get_theta(self):
         # calculate the theta in radians to the player

@@ -30,8 +30,9 @@ hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
 #enemy group
 enemy_group = pygame.sprite.Group()
 for e in range (5):
-    enemy_group.add(Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1))
+    enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
 
+player1.enemy_group = enemy_group
 #init the joystick
 pygame.joystick.init()
 
@@ -109,7 +110,6 @@ while running:
         if player1.explode == 1:
             explosion.draw(background,player1.asteroid_collision[0].rect.left -25,player1.asteroid_collision[0].rect.top -25)
             explosion_time = runtime
-            score+=1000
             try:
                 controller.rumble(0.1,1,500)
             except: pass
@@ -152,6 +152,8 @@ while running:
             state = 'level2'
             for a in asteroid_group:
                 a.kill()
+            for e in range (5):
+                enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
     
     #player dies, game over screen, allows to go to main menu by pressing triangle
     elif state == 'dead':
@@ -170,6 +172,7 @@ while running:
         try:
             if controller.get_button(1) == 1:
                 state = 'alive'
+                reset_game(asteroid_group,enemy_group)
             elif controller.get_button(3) ==1:
                 state = 'menu'
         except: pass
@@ -191,6 +194,7 @@ while running:
             if controller.get_button(1) == 1:
                 state = 'alive'
                 start_time = runtime
+                reset_game(asteroid_group,enemy_group)
             if controller.get_button(2) == 1:
                 state = 'controls'
         except: pass
@@ -220,25 +224,35 @@ while running:
         #update the score in code and on screen
         score += time_score - previous_time_score
         text.update_score(score)
+        #enemy movement code
         for e in enemy_group:
             if e.time_since_tracked == 0:
                 e.theta = randint(0,360)
-            if runtime - e.time_since_tracked >= 3000:
-                print('randomising')
+            if runtime - e.time_since_tracked >= e.trackingtime:
                 e.tracking = randint(0,1)
                 e.time_since_tracked = runtime
+                if e.tracking == 0:
+                    e.trackingtime = randint(2000,6000)
+                elif e.tracking == 1:
+                    e.trackingtime = randint(2000,4500)
             if e.tracking == 1:
-                print('tracking')
                 e.track()
                 if runtime - e.time_since_shot >= e.laser_cooldown_time:  
                     e.shoot()
                     e.time_since_shot = runtime
                     e.laser_cooldown_time = randint(1000,5000)
             else:
-                print('straight')
                 e.go_straight()
             e.draw(screen)
         
+        #explosion code
+        if player1.explode == 1:
+            explosion.draw(background,player1.enemy_collision[0].rect.left -25,player1.enemy_collision[0].rect.top -25)
+            explosion_time = runtime
+            try:
+                controller.rumble(0.1,1,500)
+            except: pass
+
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
                 background = make_background()
