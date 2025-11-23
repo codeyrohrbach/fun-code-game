@@ -43,6 +43,7 @@ text = Text()
 #time related variables
 score = 0
 time_since_shot = 0
+enemy_time_since_shot = 0
 explosion_time = 0
 explosion_screentime = 1000
 start_time = 0
@@ -215,7 +216,9 @@ while running:
         text.update_score(score)
         easy_enemy.update()
         easy_enemy.draw(screen)
-        easy_enemy.shoot()
+        if runtime - enemy_time_since_shot >= laser_cooldown_time:  
+            easy_enemy.shoot()
+            enemy_time_since_shot = runtime
         
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
