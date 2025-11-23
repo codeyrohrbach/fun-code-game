@@ -11,8 +11,8 @@ class Text:
         screen.blit(self.lives_surface, (1075,20))
     def update_score(self, score):
         #make it only render the score every 10 points (every point was distracting)
-        if score %10 == 0:
-            self.score_surface = self.score_font.render(f"Score: {score}",1,(255,0,0))
+        #if score %10 == 0:
+        self.score_surface = self.score_font.render(f"Score: {score}",1,(255,0,0))
     def update_lives(self, lives):
         self.lives_surface = self.lives_font.render(f"Lives: {lives}",1,(255,0,0))
 class Title:
@@ -78,7 +78,7 @@ class Button:
     def draw(self,screen,y,x=0):
         screen.blit(self.surface, (self.rect[0]+x, self.rect[1]+y))
 ''' TO DO:
-ASTEROIDS EXPLODE FROM LASER
-TITLE SCREEN, GAME OVER SCREEN
-
+check explosion class code, dont think its actually random,
+keep working on level 2: change the laser to red laser for enemy, put a
+cooldown on red laser, make a function to make enemy turn before hitting player
 '''
