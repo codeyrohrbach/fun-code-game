@@ -60,7 +60,7 @@ class Asteroid(pygame.sprite.Sprite):
 def reset_asteroid():
     return (choice([randint(-100,0),randint(WIDTH,WIDTH+100)]), choice([randint(-100,0),randint(HEIGHT,HEIGHT+100)]))
 
-def reset_game(asteroid_group, enemy_group):
+def reset_game(asteroid_group, enemy_group,player1):
     for a in asteroid_group:
         a.kill()
     for a in range(100):
@@ -68,7 +68,7 @@ def reset_game(asteroid_group, enemy_group):
     for e in enemy_group:
         e.kill()
     for e in range (5):
-        enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
+        enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, 'assets/images/Enemies/enemyBlack1.png'))
 
 
 #player class
@@ -87,7 +87,8 @@ class Player:
         #change to change base lives
         self.lives = 3
         self.rect.center = (x,y)
-        
+        self.ogspeed = 5
+        self.boost_speed = 7
         #laser code
         self.lasers = pygame.sprite.Group()
         
@@ -129,14 +130,15 @@ class Player:
     def update(self, left_right, up_down, right_trigger,screen=None):
         #variable explode to change if player hits asteroid
         self.explode = False
-        speed = 5
+        self.hit = False
+        self.speed = self.ogspeed
         #boost button, if right trigger pushed down then increase speed
         if right_trigger > 0.5:
-            speed = 8
+            self.speed = self.boost_speed
         #takes the values of joysticks and sets vx and vy equal to it
-        self.vx = left_right *speed
+        self.vx = left_right *self.speed
         self.get_theta()
-        self.vy = -up_down *speed
+        self.vy = -up_down *self.speed
         #moving the ship
         self.x += self.vx
         self.y += self.vy
@@ -167,17 +169,31 @@ class Player:
                 self.lives -=1
                 #set explode = true so can check for it in game file
                 self.explode = True
-            # reset asteroid using the function I created earlier
+            # kill enemy
                 for e in self.enemy_collision:
                     e.kill()
-                    #e.x = reset_asteroid()[0]
-                    #e.y = reset_asteroid()[1]
+        for e in self.enemy_group:
+            #checking for rect collision
+            if pygame.sprite.spritecollide(self,e.bad_lasers,0):
+                #checking for mask collision
+                self.enemy_laser_collision = pygame.sprite.spritecollide(self,e.bad_lasers,0,pygame.sprite.collide_mask)
+                if self.enemy_laser_collision:
+                    #take a life away
+                    self.lives -=1
+                    #set explode = true so can check for it in game file
+                    self.hit = True
+                # reset asteroid using the function I created earlier
+                    for l in e.bad_lasers:
+                        l.x = WIDTH +150
+
+
         #update the lasers
         self.lasers.update()
     #player shooting
     def shoot(self):
         #create a new laser at the players point with players theta, add it to spritegroup
         new_laser = Laser(self.rect.center,self.theta,self.asteroid_group,'assets/images/Lasers/laserBlue01.png')
+        new_laser.enemy_group = self.enemy_group
         self.lasers.add(new_laser)
 
 #laser code, sprite
@@ -195,6 +211,7 @@ class Laser(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.x = coordinates[0]
         self.y = coordinates[1]
+        self.enemy_group = asteroid_group
         self.rect.center = (coordinates)
         #mask stuff
         self.og_mask = pygame.mask.from_surface(self.image)
@@ -223,6 +240,20 @@ class Laser(pygame.sprite.Sprite):
                 for f in self.asteroid_collision:
                         f.x = reset_asteroid()[0]
                         f.y = reset_asteroid()[1]
+        
+        #checking if laser hits enemy ship
+        if pygame.sprite.spritecollide(self,self.enemy_group,0):
+            #check if it hits using mask
+            self.enemy_collision = pygame.sprite.spritecollide(self,self.enemy_group,0,pygame.sprite.collide_mask)
+            if self.enemy_collision:
+                #so the game will draw explosion, same as with player's self.explode
+                self.explode = True
+                #move the laser off the screen, which kills it
+                self.x = WIDTH +150
+                #move the asteroid off the screen
+                for e in self.enemy_collision:
+                        e.kill()
+
         #update lasers rect
         self.rect.center = (self.x,self.y)
     #drawing lasers
@@ -266,15 +297,15 @@ class Explosion(pygame.sprite.Sprite):
         screen.blit(self.new_image, (x,y))
 
 class Enemy_Easy(pygame.sprite.Sprite):
-    def __init__(self, x, y, player):
+    def __init__(self, x, y, player, filepath):
         super().__init__()
-        self.file_path = 'assets/images/Enemies/enemyBlack1.png'
+        self.file_path = filepath
         self.ogimage = pygame.image.load(self.file_path)
         self.ogimage = pygame.transform.rotozoom(self.ogimage, 0, 0.7)
         self.rect = self.ogimage.get_rect()
         self.x = x
         self.y = y
-        self.speed = 1.5
+        self.speed = 2
         self.rect.center = (x,y)
         self.player = player
         self.bad_lasers = pygame.sprite.Group()

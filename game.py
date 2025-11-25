@@ -24,13 +24,13 @@ for a in range(100):
 player1 = Player(randint(0,WIDTH), randint(0,HEIGHT),asteroid_group)
 explosion = Explosion()
 #enemies
-easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1)
+easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1, 'assets/images/Enemies/enemyBlack1.png')
 medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
 hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
 #enemy group
 enemy_group = pygame.sprite.Group()
 for e in range (5):
-    enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
+    enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, 'assets/images/Enemies/enemyBlack1.png'))
 
 player1.enemy_group = enemy_group
 #init the joystick
@@ -55,8 +55,11 @@ start_time = 0
 previous_time_score = 0
 time_score = 0
 time_since_tracked = 0
-laser_cooldown_time = 1000
+laser_cooldown_time = 750
 tracking = 0
+wave = 0
+enemies = 0
+enemy_type = 'easy'
 #starting state
 state = 'level2'
 
@@ -152,8 +155,9 @@ while running:
             state = 'level2'
             for a in asteroid_group:
                 a.kill()
-            for e in range (5):
-                enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1))
+            enemies = 0 
+            wave = 0
+            enemy_type = 'easy'
     
     #player dies, game over screen, allows to go to main menu by pressing triangle
     elif state == 'dead':
@@ -172,7 +176,7 @@ while running:
         try:
             if controller.get_button(1) == 1:
                 state = 'alive'
-                reset_game(asteroid_group,enemy_group)
+                reset_game(asteroid_group,enemy_group,player1)
             elif controller.get_button(3) ==1:
                 state = 'menu'
         except: pass
@@ -194,7 +198,7 @@ while running:
             if controller.get_button(1) == 1:
                 state = 'alive'
                 start_time = runtime
-                reset_game(asteroid_group,enemy_group)
+                reset_game(asteroid_group,enemy_group,player1)
             if controller.get_button(2) == 1:
                 state = 'controls'
         except: pass
@@ -243,6 +247,8 @@ while running:
                     e.laser_cooldown_time = randint(1000,5000)
             else:
                 e.go_straight()
+            if e.x > WIDTH + 50 or e.x < -50 or e.y > HEIGHT + 50 or e.y < -50:
+                e.track()
             e.draw(screen)
         
         #explosion code
@@ -252,15 +258,66 @@ while running:
             try:
                 controller.rumble(0.1,1,500)
             except: pass
-
+        if player1.hit == 1:
+            try:
+                explosion.draw(background,player1.enemy_laser_collision[0].rect.left -25,player1.enemy_laser_collision[0].rect.top -25)
+                explosion_time = runtime
+                controller.rumble(0.1,1,500)
+            except: pass
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
                 background = make_background()
-        
-
+        #players laser hits the enemy, explosion
+        for l in player1.lasers:
+            if l.explode == 1:
+                try:
+                    explosion.draw(background,l.enemy_collision[0].rect.left -25,l.enemy_collision[0].rect.top -25)
+                except:
+                    pass
+                explosion_time = runtime
+                #add points
+                if enemy_type == 'easy':
+                    score += 100
+                if enemy_type == 'medium':
+                    score += 200
+                if enemy_type == 'hard':
+                    score += 300
+                try:
+                    controller.rumble(0.5,0.5,150)
+                except: pass
+        #waves code
+        if len(enemy_group) == 0:
+            wave += 1
+            enemies += 1.5
+            player1.lives +=1
+            for e in range (5+int(enemies//1)):
+                if wave > 9:
+                    enemy_type = 'extreme'
+                    file = 'assets/images/Enemies/enemyBlack2.png'
+                elif wave > 6:
+                    enemy_type = 'hard'
+                    file = 'assets/images/Enemies/enemyBlack4.png'
+                elif wave >2:
+                    enemy_type = 'medium'
+                    file = 'assets/images/Enemies/enemyBlack5.png'
+                else:    
+                    file = 'assets/images/Enemies/enemyBlack1.png'
+                    enemy_type = 'easy'
+                enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, file))
+            for e in enemy_group:
+                if e.speed < 5 and wave < 3:
+                    e.speed += wave
+                else:
+                    e.speed += 2
+                if enemy_type == 'hard':
+                    e.speed +=1
+                if enemy_type == 'extreme':
+                    e.speed +=2
+            print(wave)
         #if player dies set the state to dead
         if player1.lives <= 0:
             state = 'dead'
+    
     
     #dont touch
     pygame.display.flip()
