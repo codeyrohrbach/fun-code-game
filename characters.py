@@ -63,17 +63,17 @@ def reset_asteroid():
 def reset_game(asteroid_group, enemy_group,player1):
     for a in asteroid_group:
         a.kill()
-    for a in range(100):
+    for a in range(120):
         asteroid_group.add(Asteroid(reset_asteroid()[0],reset_asteroid()[1]))
     for e in enemy_group:
         e.kill()
-    for e in range (5):
+    for e in range (3):
         enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, 'assets/images/Enemies/enemyBlack1.png'))
 def enemy_waves(wave):
     if wave > 8:
         enemy_type = 'extreme'
         file = 'assets/images/Enemies/enemyBlack2.png'
-        enemies = 8
+        enemies = 9
     elif wave > 7:
         enemy_type = 'hard'
         file = 'assets/images/Enemies/enemyBlack4.png'
@@ -85,18 +85,18 @@ def enemy_waves(wave):
     elif wave > 4:
         enemy_type = 'medium'
         file = 'assets/images/Enemies/enemyBlack5.png'
-        enemies = 7
+        enemies = 6
     elif wave > 2:
         enemy_type = 'medium'
         file = 'assets/images/Enemies/enemyBlack5.png'
-        enemies = 6
+        enemies = 5
     elif wave > 1:
         enemy_type = 'easy'
         file = 'assets/images/Enemies/enemyBlack1.png'
-        enemies = 6
+        enemies = 4
     else:    
         file = 'assets/images/Enemies/enemyBlack1.png'
-        enemies = 5
+        enemies = 3
         enemy_type = 'easy'
     return file, enemies, enemy_type
 
@@ -134,6 +134,7 @@ class Player:
         try:
             self.image = pygame.transform.rotozoom(self.og_image, math.degrees(self.theta)+90,0.6)
         except:
+            print('exception in class')
             self.image = self.og_image
 
         #update the rect and add player to the screen
@@ -335,6 +336,7 @@ class Enemy_Easy(pygame.sprite.Sprite):
         self.ogimage = pygame.image.load(self.file_path)
         self.ogimage = pygame.transform.rotozoom(self.ogimage, 0, 0.7)
         self.rect = self.ogimage.get_rect()
+        self.bad_laser_sound = pygame.mixer.Sound('assets/Audio/laserSmall_001.ogg')
         self.x = x
         self.y = y
         self.speed = 2
@@ -396,34 +398,27 @@ class Enemy_Easy(pygame.sprite.Sprite):
         self.y += self.vy
         self.rect.center = (self.x,self.y)
         self.bad_lasers.update()
+    
+    def update(self):
+        if self.time_since_tracked == 0:
+                self.theta = randint(0,360)
+        if pygame.time.get_ticks() - self.time_since_tracked >= self.trackingtime:
+                self.tracking = randint(0,1)
+                self.time_since_tracked = pygame.time.get_ticks()
+                if self.tracking == 0:
+                    self.trackingtime = randint(2000,6000)
+                elif self.tracking == 1:
+                    self.trackingtime = randint(2000,4500)
+        if self.tracking == 1:
+                self.track()
+                if pygame.time.get_ticks() - self.time_since_shot >= self.laser_cooldown_time:  
+                    self.shoot()
+                    self.bad_laser_sound.play()
+                    self.time_since_shot = pygame.time.get_ticks()
+                    self.laser_cooldown_time = randint(1000,5000)
+        else:
+                self.go_straight()
+        if self.x > WIDTH + 50 or self.x < -50 or self.y > HEIGHT + 50 or self.y < -50:
+                self.track()
 
-
-
-
-
-class Enemy_Medium:
-    def __init__(self, x, y):
-        self.file_path = 'assets/images/playerShip2_red.png'
-        self.image = pygame.image.load(self.file_path)
-        self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.center = (x,y)
-        self.speed = 2
-    def draw(self,screen):
-        screen.blit(self.image, self.rect)
-
-
-
-class Enemy_Hard:
-    def __init__(self, x, y):
-        self.file_path = 'assets/images/playerShip1_red.png'
-        self.image = pygame.image.load(self.file_path)
-        self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.center = (x,y)
-        self.speed = 3
-    def draw(self,screen):
-        screen.blit(self.image, self.rect)
 

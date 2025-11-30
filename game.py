@@ -25,11 +25,10 @@ player1 = Player(randint(0,WIDTH), randint(0,HEIGHT),asteroid_group)
 explosion = Explosion()
 #enemies
 easy_enemy = Enemy_Easy(randint(0,WIDTH), randint(0,HEIGHT), player1, 'assets/images/Enemies/enemyBlack1.png')
-medium_enemy = Enemy_Medium(randint(0,WIDTH), randint(0,HEIGHT))
-hard_enemy = Enemy_Hard(randint(0,WIDTH), randint(0,HEIGHT))
+
 #enemy group
 enemy_group = pygame.sprite.Group()
-for e in range (5):
+for e in range (3):
     enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, 'assets/images/Enemies/enemyBlack1.png'))
 
 player1.enemy_group = enemy_group
@@ -63,7 +62,7 @@ start_time = 0
 previous_time_score = 0
 time_score = 0
 time_since_tracked = 0
-laser_cooldown_time = 750
+laser_cooldown_time = 650
 tracking = 0
 wave = 0
 enemies = 0
@@ -92,6 +91,7 @@ while running:
             left_right = 0
             up_down = 0
             right_trigger = 0
+            print('exception in game')
     #if the game has started, this where things move
     if state == 'level1':
         previous_time_score = time_score
@@ -148,32 +148,18 @@ while running:
         
         for a in asteroid_group:
             if a.vx > 0:
-                a.vx += time_score/50000
+                a.vx += time_score/45000
             elif a.vx < 0:
-                a.vx -= time_score/50000
+                a.vx -= time_score/45000
             if a.vy > 0:
-                a.vy += time_score/50000
+                a.vy += time_score/45000
             elif a.vy < 0:
-                a.vy -= time_score/50000
+                a.vy -= time_score/45000
             
         
         #if player dies set the state to dead
         if player1.lives <= 0:
             state = 'dead'
-        
-        
-        #optional, uncomment these to show the rects of all objects, also mask of asteroid
-        '''#to see asteroid mask
-        for a in asteroid_group:
-            a.draw(screen)
-      #''''''  
-        #draw the rects
-        for l in player1.lasers:
-            pygame.draw.rect(screen,(255,255,255),l.rect,1)
-        pygame.draw.rect(screen,(255,255,255),player1.rect,1)
-        for a in asteroid_group:
-            pygame.draw.rect(screen,(255,255,255),a.rect,1)
-    '''
             
     
     #player dies, game over screen, allows to go to main menu by pressing triangle
@@ -269,26 +255,7 @@ while running:
         text.update_score(score)
         #enemy movement code
         for e in enemy_group:
-            if e.time_since_tracked == 0:
-                e.theta = randint(0,360)
-            if runtime - e.time_since_tracked >= e.trackingtime:
-                e.tracking = randint(0,1)
-                e.time_since_tracked = runtime
-                if e.tracking == 0:
-                    e.trackingtime = randint(2000,6000)
-                elif e.tracking == 1:
-                    e.trackingtime = randint(2000,4500)
-            if e.tracking == 1:
-                e.track()
-                if runtime - e.time_since_shot >= e.laser_cooldown_time:  
-                    e.shoot()
-                    bad_laser_sound.play()
-                    e.time_since_shot = runtime
-                    e.laser_cooldown_time = randint(1000,5000)
-            else:
-                e.go_straight()
-            if e.x > WIDTH + 50 or e.x < -50 or e.y > HEIGHT + 50 or e.y < -50:
-                e.track()
+            e.update()
             e.draw(screen)
         
         #explosion code
