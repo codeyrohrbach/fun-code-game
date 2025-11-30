@@ -19,10 +19,10 @@ class Text:
 #used for the Title
 class Title:
     def __init__(self):
-        self.title_font = pygame.font.Font('assets/Xirod.otf',60)
-        self.title_surface = self.title_font.render('Asteroid Avoidance',1,(255,0,0))
+        self.title_font = pygame.font.Font('assets/Xirod.otf',40)
+        self.title_surface = self.title_font.render('Asteroid Avoidance / Gunship Attack',1,(255,0,0))
         self.rect = self.title_surface.get_rect()
-        self.rect.center = (WIDTH//2,HEIGHT//2)
+        self.rect.center = (WIDTH//2,HEIGHT//2-50)
     def draw(self,screen):
         screen.blit(self.title_surface, self.rect)
 
