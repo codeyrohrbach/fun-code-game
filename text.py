@@ -77,8 +77,16 @@ class Button:
         self.rect.center = (WIDTH//2,HEIGHT//2)
     def draw(self,screen,y,x=0):
         screen.blit(self.surface, (self.rect[0]+x, self.rect[1]+y))
+
+class Wave:
+    def __init__(self):
+        self.font = pygame.font.Font('assets/Xirod.otf',30)
+    def draw(self,screen,wave_num):
+        self.surface = self.font.render(f'Wave {wave_num}',1,(255,0,0))
+        self.rect = self.surface.get_rect()
+        self.rect.center = (WIDTH//2,60)
+        screen.blit(self.surface, (self.rect[0], 25))
+
 ''' TO DO:
-check explosion class code, dont think its actually random,
-keep working on level 2: change the laser to red laser for enemy, put a
-cooldown on red laser, make a function to make enemy turn before hitting player
+add sound, add text to show when player gets another life, also score
 '''

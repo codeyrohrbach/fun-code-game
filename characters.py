@@ -69,7 +69,36 @@ def reset_game(asteroid_group, enemy_group,player1):
         e.kill()
     for e in range (5):
         enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, 'assets/images/Enemies/enemyBlack1.png'))
-
+def enemy_waves(wave):
+    if wave > 8:
+        enemy_type = 'extreme'
+        file = 'assets/images/Enemies/enemyBlack2.png'
+        enemies = 8
+    elif wave > 7:
+        enemy_type = 'hard'
+        file = 'assets/images/Enemies/enemyBlack4.png'
+        enemies = 8
+    elif wave > 5:
+        enemy_type = 'hard'
+        file = 'assets/images/Enemies/enemyBlack4.png'
+        enemies = 7
+    elif wave > 4:
+        enemy_type = 'medium'
+        file = 'assets/images/Enemies/enemyBlack5.png'
+        enemies = 7
+    elif wave > 2:
+        enemy_type = 'medium'
+        file = 'assets/images/Enemies/enemyBlack5.png'
+        enemies = 6
+    elif wave > 1:
+        enemy_type = 'easy'
+        file = 'assets/images/Enemies/enemyBlack1.png'
+        enemies = 6
+    else:    
+        file = 'assets/images/Enemies/enemyBlack1.png'
+        enemies = 5
+        enemy_type = 'easy'
+    return file, enemies, enemy_type
 
 #player class
 class Player:
@@ -78,6 +107,8 @@ class Player:
         self.file_path = 'assets/images/playerShip1_blue.png'
         self.og_image = pygame.image.load(self.file_path)
         self.rect = self.og_image.get_rect()
+        self.boost_sound = pygame.mixer.Sound('assets/Audio/spaceEngineLow_000.ogg')
+        self.boost_sound.set_volume(0.12)
         self.asteroid_group = asteroid_group
         self.x = x
         self.y = y
@@ -135,6 +166,8 @@ class Player:
         #boost button, if right trigger pushed down then increase speed
         if right_trigger > 0.5:
             self.speed = self.boost_speed
+            self.boost_sound.play(0,50)
+
         #takes the values of joysticks and sets vx and vy equal to it
         self.vx = left_right *self.speed
         self.get_theta()
@@ -284,7 +317,6 @@ class Explosion(pygame.sprite.Sprite):
             'assets/PNG/Explosion/explosion07.png',
             'assets/PNG/Explosion/explosion08.png',
         ]
-        #check here######################################
         for a in self.assets:
             self.file_path = choice(self.assets)
             self.image = pygame.image.load(self.file_path)

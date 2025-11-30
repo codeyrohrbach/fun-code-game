@@ -40,17 +40,25 @@ pygame.joystick.init()
 title = Title()
 gameover = GameOver()
 controls = Controls()
-circle = Button('Circle', 'start the game')
+circle = Button('Circle', 'Play Asteroid Avoidance')
 square = Button('Square', 'see the controls')
 triangle = Button('Triangle','return to menu')
+cross = Button('X','Play Gunship Attack')
 text = Text()
-
+wavetxt = Wave()
+#sound stuff
+good_laser_sound = pygame.mixer.Sound('assets/Audio/laserSmall_002.ogg')
+bad_laser_sound = pygame.mixer.Sound('assets/Audio/laserSmall_001.ogg')
+explosion_sound1 = pygame.mixer.Sound('assets/Audio/explosionCrunch_001.ogg')
+explosion_sound2 = pygame.mixer.Sound('assets/Audio/explosionCrunch_003.ogg')
+explosion_sound1.set_volume(0.15)
+explosion_sound2.set_volume(0.15)
 #time related variables
 score = 0
 time_since_shot = 0
 enemy_time_since_shot = 0
 explosion_time = 0
-explosion_screentime = 1000
+explosion_screentime = 750
 start_time = 0
 previous_time_score = 0
 time_score = 0
@@ -61,8 +69,7 @@ wave = 0
 enemies = 0
 enemy_type = 'easy'
 #starting state
-state = 'level2'
-
+state = 'menu'
 #start game here
 while running:
     #time stuff that changes
@@ -86,7 +93,7 @@ while running:
             up_down = 0
             right_trigger = 0
     #if the game has started, this where things move
-    if state == 'alive':
+    if state == 'level1':
         previous_time_score = time_score
         time_score += (runtime - start_time)//250 - previous_time_score
         #updates, blitting
@@ -107,12 +114,14 @@ while running:
                 if runtime - time_since_shot >= laser_cooldown_time:
                     player1.shoot()
                     time_since_shot = runtime
+                    good_laser_sound.play()
         except: pass
         player1.draw(screen)
         #player hits the asteroid, explosion
         if player1.explode == 1:
             explosion.draw(background,player1.asteroid_collision[0].rect.left -25,player1.asteroid_collision[0].rect.top -25)
             explosion_time = runtime
+            explosion_sound1.play()
             try:
                 controller.rumble(0.1,1,500)
             except: pass
@@ -121,6 +130,7 @@ while running:
             if l.explode == 1:
                 explosion.draw(background,l.asteroid_collision[0].rect.left -25,l.asteroid_collision[0].rect.top -25)
                 explosion_time = runtime
+                explosion_sound2.play()
                 #add 50 points
                 score += 50
                 try:
@@ -130,6 +140,27 @@ while running:
         if runtime - explosion_time < 2000:
             if runtime - explosion_time > explosion_screentime:
                 background = make_background()
+        
+
+        #update the score in code and on screen
+        score += time_score - previous_time_score
+        text.update_score(score)
+        
+        for a in asteroid_group:
+            if a.vx > 0:
+                a.vx += time_score/50000
+            elif a.vx < 0:
+                a.vx -= time_score/50000
+            if a.vy > 0:
+                a.vy += time_score/50000
+            elif a.vy < 0:
+                a.vy -= time_score/50000
+            
+        
+        #if player dies set the state to dead
+        if player1.lives <= 0:
+            state = 'dead'
+        
         
         #optional, uncomment these to show the rects of all objects, also mask of asteroid
         '''#to see asteroid mask
@@ -143,21 +174,7 @@ while running:
         for a in asteroid_group:
             pygame.draw.rect(screen,(255,255,255),a.rect,1)
     '''
-        #update the score in code and on screen
-        score += time_score - previous_time_score
-        text.update_score(score)
-        #if player dies set the state to dead
-        if player1.lives <= 0:
-            state = 'dead'
-        
-        #level 2 code
-        if score > 1000:
-            state = 'level2'
-            for a in asteroid_group:
-                a.kill()
-            enemies = 0 
-            wave = 0
-            enemy_type = 'easy'
+            
     
     #player dies, game over screen, allows to go to main menu by pressing triangle
     elif state == 'dead':
@@ -172,13 +189,22 @@ while running:
         screen.blit(background,(-10,0))
         controls.draw(screen)
         circle.draw(screen,200)
-        triangle.draw(screen,250)
+        cross.draw(screen,250)
+        triangle.draw(screen,300)
         try:
             if controller.get_button(1) == 1:
-                state = 'alive'
+                state = 'level1'
+                start_time = runtime
                 reset_game(asteroid_group,enemy_group,player1)
-            elif controller.get_button(3) ==1:
+                time_score = 0
+            if controller.get_button(3) ==1:
                 state = 'menu'
+            if controller.get_button(0) == 1:
+                state = 'level2'
+                reset_game(asteroid_group,enemy_group,player1)
+                enemies = 0 
+                wave = 0
+                enemy_type = 'easy'
         except: pass
     #menu screen, start game with circle, controls screen with triangle
     elif state == 'menu':
@@ -186,7 +212,8 @@ while running:
         screen.blit(background,(-10,0))
         title.draw(screen)
         circle.draw(screen,100)
-        square.draw(screen,150)
+        square.draw(screen,300)
+        cross.draw(screen,150)
         for a in asteroid_group:
             a.x = reset_asteroid()[0]
             a.y = reset_asteroid()[1]
@@ -196,14 +223,25 @@ while running:
         player1.y = HEIGHT//2
         try:
             if controller.get_button(1) == 1:
-                state = 'alive'
+                state = 'level1'
+                time_score = 0
                 start_time = runtime
                 reset_game(asteroid_group,enemy_group,player1)
             if controller.get_button(2) == 1:
                 state = 'controls'
+            if controller.get_button(0) == 1:
+                state = 'level2'
+                reset_game(asteroid_group,enemy_group,player1)
+                enemies = 0 
+                wave = 0
+                enemy_type = 'easy'
         except: pass
     #level 2
     elif state == 'level2':
+        try:
+            for a in asteroid_group:
+                a.kill()
+        except: pass
         previous_time_score = time_score
         time_score += (runtime - start_time)//250 - previous_time_score
         #updates, blitting
@@ -222,6 +260,7 @@ while running:
                #player can only shoot if its been longer than cooldown time
                 if runtime - time_since_shot >= laser_cooldown_time:
                     player1.shoot()
+                    good_laser_sound.play()
                     time_since_shot = runtime
         except: pass
         
@@ -243,6 +282,7 @@ while running:
                 e.track()
                 if runtime - e.time_since_shot >= e.laser_cooldown_time:  
                     e.shoot()
+                    bad_laser_sound.play()
                     e.time_since_shot = runtime
                     e.laser_cooldown_time = randint(1000,5000)
             else:
@@ -255,6 +295,7 @@ while running:
         if player1.explode == 1:
             explosion.draw(background,player1.enemy_collision[0].rect.left -25,player1.enemy_collision[0].rect.top -25)
             explosion_time = runtime
+            explosion_sound1.play()
             try:
                 controller.rumble(0.1,1,500)
             except: pass
@@ -262,6 +303,7 @@ while running:
             try:
                 explosion.draw(background,player1.enemy_laser_collision[0].rect.left -25,player1.enemy_laser_collision[0].rect.top -25)
                 explosion_time = runtime
+                explosion_sound1.play()
                 controller.rumble(0.1,1,500)
             except: pass
         if runtime - explosion_time < 2000:
@@ -270,6 +312,7 @@ while running:
         #players laser hits the enemy, explosion
         for l in player1.lasers:
             if l.explode == 1:
+                explosion_sound2.play()
                 try:
                     explosion.draw(background,l.enemy_collision[0].rect.left -25,l.enemy_collision[0].rect.top -25)
                 except:
@@ -288,32 +331,24 @@ while running:
         #waves code
         if len(enemy_group) == 0:
             wave += 1
-            enemies += 1.5
             player1.lives +=1
-            for e in range (5+int(enemies//1)):
-                if wave > 9:
-                    enemy_type = 'extreme'
-                    file = 'assets/images/Enemies/enemyBlack2.png'
-                elif wave > 6:
-                    enemy_type = 'hard'
-                    file = 'assets/images/Enemies/enemyBlack4.png'
-                elif wave >2:
-                    enemy_type = 'medium'
-                    file = 'assets/images/Enemies/enemyBlack5.png'
-                else:    
-                    file = 'assets/images/Enemies/enemyBlack1.png'
-                    enemy_type = 'easy'
+            file = enemy_waves(wave)[0]
+            enemies = enemy_waves(wave)[1]
+            enemy_type = enemy_waves(wave)[2]
+            for e in range (enemies):
                 enemy_group.add(Enemy_Easy(reset_asteroid()[0],reset_asteroid()[1], player1, file))
             for e in enemy_group:
-                if e.speed < 5 and wave < 3:
-                    e.speed += wave
-                else:
-                    e.speed += 2
+                if enemy_type == 'easy':
+                    e.speed = 3
+                if enemy_type == 'medium':
+                    e.speed = 4
                 if enemy_type == 'hard':
-                    e.speed +=1
+                    e.speed = 5
                 if enemy_type == 'extreme':
-                    e.speed +=2
-            print(wave)
+                    e.speed = 6
+        
+        wavetxt.draw(screen, wave)
+        
         #if player dies set the state to dead
         if player1.lives <= 0:
             state = 'dead'
