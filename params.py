@@ -1,5 +1,4 @@
-#WIDTH 1280
-#Height 664
+#parameters, used to change screen size
 WIDTH = 1280
 HEIGHT = 664
 MIDDLEX = WIDTH//2

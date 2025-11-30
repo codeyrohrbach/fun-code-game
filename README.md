@@ -3,7 +3,7 @@
 ## Directions
 1. Asteroid Avoidance: Avoid the moving asteroids!
 ![screenshot](assets/Gameplay.png)
-2. Gunship Attack: Shoot the enemy ships!
+2. Gunship Attack: Shoot the enemy ships! After completing a wave, the player receives an additional life!
 ![screenshot](assets/Gameplay2.png)
 ### Controls
 1. Use the left Joystick to move around
